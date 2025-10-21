@@ -1,0 +1,50 @@
+/* Home.css */
+
+.sidebar {
+  width: 220px;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.sidebar .nav-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  color: white;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.sidebar .nav-item:hover {
+  background-color: #343a40;
+}
+
+.sidebar .sidebar-toggle {
+  cursor: pointer;
+}
+
+.sidebar .nav-item {
+  padding: 10px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.sidebar .nav-item:hover {
+  background-color: #343a40; /* dark gray hover */
+}
+
+.sidebar .nav-item.active {
+  background-color: #0dadfd6d; /* bootstrap primary blue */
+  color: white;
+}
+
+.sidebar .nav-item.active:hover {
+  background-color: #0dadfdd0; /* darker blue on hover */
+}

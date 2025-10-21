@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ride Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f2f2f2;
+            padding: 30px;
+            margin: 0;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #eaeaea;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            color: #2e6da4;
+            margin: 0;
+        }
+
+        .section-title {
+            background-color: #2e6da4;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .info-box {
+            padding: 15px;
+            border: 1px solid #eaeaea;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            background-color: #fafafa;
+        }
+
+        .info-box p {
+            margin: 6px 0;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .otp-code {
+            font-size: 18px;
+            color: #d9534f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h2>🚗 Your Ride Has Been Confirmed!</h2>
+        </div>
+
+        <p>Dear <span class="highlight">{PassengerName}</span>,</p>
+        <p>Your booking has been confirmed. Please find your ride and OTP details below:</p>
+
+        <div class="section-title">🧍 Your Details</div>
+        <div class="info-box">
+            <p><strong>Name:</strong> {PassengerName}</p>
+            <p><strong>Age:</strong> {PassengerAge}</p>
+            <p><strong>Email:</strong> {PassengerEmail}</p>
+            <p><strong>Phone:</strong> {PassengerPhone}</p>
+            <p><strong>OTP for verification:</strong> <span class="otp-code">{OTP}</span></p>
+        </div>
+
+        <div class="section-title">🚘 Driver Details</div>
+        <div class="info-box">
+            <p><strong>Name:</strong> {DriverName}</p>
+            <p><strong>Email:</strong> {DriverEmail}</p>
+            <p><strong>Phone:</strong> {DriverPhone}</p>
+        </div>
+
+        <div class="footer">
+            Have a safe and pleasant journey! 🛣️<br>
+            <strong>- Carpooling Team</strong>
+        </div>
+    </div>
+</body>
+</html>

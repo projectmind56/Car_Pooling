@@ -1,0 +1,4 @@
+/* Override the toast container z-index */
+.Toastify__toast-container {
+  z-index: 1100 !important;
+}
