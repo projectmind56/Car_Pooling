@@ -138,38 +138,51 @@ namespace backend.Services
 
 
 
-        public async Task<bool> UploadDriverProofAsync(DriverProofDto dto)
+public async Task<(bool Success, string Message)> UploadDriverProofAsync(DriverProofDto dto)
+{
+    // Check if proof already exists
+    var existingProof = await _context.DriverProofs
+        .FirstOrDefaultAsync(p => p.UserId == dto.UserId);
+
+    if (existingProof != null)
+    {
+        return (false, "Driver proof already created for this user.");
+    }
+
+    // File saving directory
+    var uploadsDir = Path.Combine(_env.WebRootPath ?? "wwwroot", "DriverProofs");
+
+    if (!Directory.Exists(uploadsDir))
+        Directory.CreateDirectory(uploadsDir);
+
+    // Helper to save a file
+    string SaveFile(IFormFile file)
+    {
+        var uniqueName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+        var filePath = Path.Combine(uploadsDir, uniqueName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
         {
-            var uploadsDir = Path.Combine(_env.WebRootPath ?? "wwwroot", "DriverProofs");
-
-            if (!Directory.Exists(uploadsDir))
-                Directory.CreateDirectory(uploadsDir);
-
-            string SaveFile(IFormFile file)
-            {
-                var uniqueName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                var filePath = Path.Combine(uploadsDir, uniqueName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    file.CopyTo(stream);
-                }
-
-                return $"/DriverProofs/{uniqueName}";
-            }
-
-            var proof = new DriverProofModel
-            {
-                UserId = dto.UserId,
-                LicenseImagePath = SaveFile(dto.LicenseImage),
-                ProfileImagePath = SaveFile(dto.ProfileImage),
-                RcBookImagePath = SaveFile(dto.RcBookImage)
-            };
-
-            _context.Add(proof);
-            await _context.SaveChangesAsync();
-            return true;
+            file.CopyTo(stream);
         }
+
+        return $"/DriverProofs/{uniqueName}";
+    }
+
+    // Save proof record
+    var proof = new DriverProofModel
+    {
+        UserId = dto.UserId,
+        LicenseImagePath = SaveFile(dto.LicenseImage),
+        ProfileImagePath = SaveFile(dto.ProfileImage),
+        RcBookImagePath = SaveFile(dto.RcBookImage)
+    };
+
+    _context.Add(proof);
+    await _context.SaveChangesAsync();
+
+    return (true, "Driver proof uploaded successfully.");
+}
 
     }
 }

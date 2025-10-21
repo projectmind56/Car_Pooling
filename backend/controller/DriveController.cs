@@ -50,11 +50,12 @@ namespace backend.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadDriverProof([FromForm] DriverProofDto dto)
         {
-            var success = await _service.UploadDriverProofAsync(dto);
-            if (!success)
-                return BadRequest(new { message = "Driver proof upload failed." });
+            var (success, message) = await _service.UploadDriverProofAsync(dto);
 
-            return Ok(new { message = "Driver proof uploaded successfully." });
+            if (!success)
+                return BadRequest(new { error = message });
+
+            return Ok(new { message });
         }
 
     }

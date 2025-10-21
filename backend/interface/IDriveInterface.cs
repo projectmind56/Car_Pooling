@@ -10,7 +10,7 @@ namespace backend.Interfaces
         Task<List<DriveWithPassengersDto>> GetDrivesByUserIdAsync(int userId);
         Task<List<DriveWithProofDto>> GetDrivesAsync(); 
 
-        Task<bool> UploadDriverProofAsync(DriverProofDto dto);
+Task<(bool Success, string Message)> UploadDriverProofAsync(DriverProofDto dto);
 
     }
 }
