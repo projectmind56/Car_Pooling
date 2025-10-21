@@ -10,15 +10,21 @@ import MyDrive from './components/User/MyDrive';
 import GetDrive from './components/User/GetDrive';
 import UploadDriverProof from './components/User/UploadDriverProof';
 
-function App() {
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
+function App() {
   return (
     <>
       <BrowserRouter>
+        {/* Toast container for global use */}
+        <ToastContainer position="top-right" autoClose={3000} />
+        
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
           </Route>
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
@@ -30,7 +36,6 @@ function App() {
             <Route path="home" element={<Home />} />
             <Route path="get-drive" element={<GetDrive />} />
             <Route path="upload-proof" element={<UploadDriverProof />} />
-
           </Route>
         </Routes>
       </BrowserRouter>
@@ -38,4 +43,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
