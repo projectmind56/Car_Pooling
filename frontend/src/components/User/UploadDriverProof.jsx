@@ -25,43 +25,44 @@ function UploadDriverProof() {
     }
   };
 
-  const handleUpload = async () => {
-    const driverId = localStorage.getItem('id');
+const handleUpload = async () => {
+  const driverId = localStorage.getItem('id');
 
-    if (!driverId) {
-      toast.error('Please log in to upload documents.');
-      return;
+  if (!driverId) {
+    toast.error('Please log in to upload documents.');
+    return;
+  }
+
+  if (!licenseImage || !profileImage || !rcBookImage) {
+    toast.error('Please upload all required images.');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('UserId', driverId);
+  formData.append('LicenseImage', licenseImage.file);
+  formData.append('ProfileImage', profileImage.file);
+  formData.append('RcBookImage', rcBookImage.file);
+
+  try {
+    const response = await fetch('http://localhost:5218/api/Drive/upload-driver-proof', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      toast.success(data.message || 'Documents uploaded successfully!');
+      // Optionally clear inputs here
+    } else {
+      const errorData = await response.json();
+      toast.error(errorData.error || 'Upload failed.'); // <-- Correct key
     }
+  } catch (error) {
+    toast.error('Something went wrong. Please try again.');
+  }
+};
 
-    if (!licenseImage || !profileImage || !rcBookImage) {
-      toast.error('Please upload all required images.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('UserId', driverId);
-    formData.append('LicenseImage', licenseImage.file);
-    formData.append('ProfileImage', profileImage.file);
-    formData.append('RcBookImage', rcBookImage.file);
-
-    try {
-      const response = await fetch('http://localhost:5218/api/Drive/upload-driver-proof', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        toast.success(data.message || 'Documents uploaded successfully!');
-        // Optionally clear inputs here
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || 'Upload failed.');
-      }
-    } catch (error) {
-      toast.error('Something went wrong. Please try again.');
-    }
-  };
 
   return (
     <div className="container mt-4">
