@@ -1,0 +1,110 @@
+.my-ride-container {
+    padding: 20px;
+}
+
+.ride-card-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.card {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+    min-height: 150px;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: scale(1.01);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.status-cancelled {
+    color: red;
+    font-weight: bold;
+}
+
+.status-completed {
+    color: gray;
+    font-weight: bold;
+}
+
+.status-upcoming {
+    color: blue;
+    font-weight: bold;
+}
+
+.status-today {
+    color: green;
+    font-weight: bold;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-box {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.car-images img {
+    margin-bottom: 10px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .ride-card-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .ride-card-list {
+        grid-template-columns: 1fr;
+    }
+}

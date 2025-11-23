@@ -52,7 +52,9 @@ const handleUpload = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      toast.success(data.message || 'Documents uploaded successfully!');
+      console.log(data);
+      
+      toast.success(data.message);
       // Optionally clear inputs here
     } else {
       const errorData = await response.json();

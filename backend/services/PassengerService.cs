@@ -179,5 +179,51 @@ namespace backend.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+        // GET ALL RIDES FOR A PASSENGER
+public async Task<List<RideWithPassengerDto>> GetRidesForPassengerAsync(int userId)
+{
+    var rides = await (
+        from p in _context.PassengerDetails
+        join d in _context.Drives on p.DriveId equals d.DriveId
+        join u in _context.Users on d.UserId equals u.UserId
+        where p.UserId == userId
+        select new RideWithPassengerDto
+        {
+            Ride = d,
+            PassengerDetails = p,
+            DriverName = u.UserName,
+            DriverEmail = u.Email,
+            DriverPhone = u.Phone
+        }
+    ).ToListAsync();
+
+    return rides;
+}
+
+    // PASSENGER CANCELS RIDE
+    public async Task<bool> CancelPassengerRideAsync(int passengerId)
+    {
+        var passenger = await _context.PassengerDetails
+            .FirstOrDefaultAsync(p => p.Id == passengerId);
+
+        if (passenger == null)
+            return false;
+
+        // Update passenger status
+        passenger.Status = "cancelled";
+
+        // Free a seat for driver
+        var drive = await _context.Drives
+            .FirstOrDefaultAsync(d => d.DriveId == passenger.DriveId);
+
+        if (drive != null)
+        {
+            drive.CapacityLeft += 1;
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
     }
 }

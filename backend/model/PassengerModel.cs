@@ -26,5 +26,7 @@ namespace backend.Models
         [Required]
         public string AadharCopy { get; set; } = string.Empty;
 
+        public string Status { get; set;} = "pending";
+
     }
 }

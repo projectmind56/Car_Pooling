@@ -7,7 +7,8 @@ import {
   faBars,
   faTimes,
   faCar,
-  faSignInAlt
+  faSignInAlt,
+  faBridge
 } from '@fortawesome/free-solid-svg-icons';
 import './Home.css';
 import { faHome } from '@fortawesome/free-solid-svg-icons/faHome';
@@ -77,6 +78,14 @@ function Layout() {
           >
             <FontAwesomeIcon icon={faCar} />
             {isOpen && <span className="ms-2">My Drive</span>}
+          </div>
+
+                    <div
+            className={`nav-item mb-1 ${isActive('/layout/my-ride') ? 'active' : ''}`}
+            onClick={() => navigate('/layout/my-ride')}
+          >
+            <FontAwesomeIcon icon={faBridge} />
+            {isOpen && <span className="ms-2">My Ride</span>}
           </div>
 
           <div

@@ -18,7 +18,7 @@ namespace backend.Models
         public int CapacityLeft { get; set; }
 
         public string LicenseNumber { get; set; } = string.Empty;
-
+        public string Status { get; set; } = string.Empty;
         public List<string> CarPhotoPaths { get; set; } = new List<string>();
 
     }

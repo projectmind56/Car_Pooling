@@ -12,6 +12,7 @@ import UploadDriverProof from './components/User/UploadDriverProof';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import MyRide from './components/User/MyRide';
 
 function App() {
   return (
@@ -19,7 +20,7 @@ function App() {
       <BrowserRouter>
         {/* Toast container for global use */}
         <ToastContainer position="top-right" autoClose={3000} />
-        
+
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
@@ -36,6 +37,7 @@ function App() {
             <Route path="home" element={<Home />} />
             <Route path="get-drive" element={<GetDrive />} />
             <Route path="upload-proof" element={<UploadDriverProof />} />
+            <Route path="my-ride" element={<MyRide />} />
           </Route>
         </Routes>
       </BrowserRouter>

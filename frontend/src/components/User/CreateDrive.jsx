@@ -16,6 +16,8 @@ function CreateDrive() {
         licenseNumber: '',
         carPhotos: [],
     });
+    const [loading, setLoading] = useState(false); // Add this
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -102,6 +104,7 @@ function CreateDrive() {
         }
 
         try {
+            setLoading(true);
             const form = new FormData();
             form.append('userId', formData.usreId);
             form.append('from', formData.from);
@@ -147,6 +150,9 @@ function CreateDrive() {
         } catch (error) {
             console.error(error);
             toast.error('An error occurred while submitting the form.');
+        }
+        finally {
+            setLoading(false); // stop loader
         }
     };
 
@@ -340,7 +346,17 @@ function CreateDrive() {
                     </div>
                 </div>
 
-                <button type="submit" className="btn btn-primary">Create Drive</button>
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {loading ? (
+                        <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Creating...
+                        </>
+                    ) : (
+                        'Create Drive'
+                    )}
+                </button>
+
             </form>
 
             <ToastContainer position="top-right" autoClose={3000} theme="colored" />

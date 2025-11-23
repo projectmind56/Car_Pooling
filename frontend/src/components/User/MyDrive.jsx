@@ -5,6 +5,11 @@ import { toast } from 'react-toastify';
 function MyDrive() {
   const [drives, setDrives] = useState([]);
   const [aadharPreview, setAadharPreview] = useState(null);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [acceptLoading, setAcceptLoading] = useState(null);   // passengerId
+  const [rejectLoading, setRejectLoading] = useState(null);   // passengerId
+  const [cancelLoading, setCancelLoading] = useState(false);  // whole drive
+
 
   const [filteredDrives, setFilteredDrives] = useState([]);
   const [selectedDrive, setSelectedDrive] = useState(null);
@@ -64,10 +69,44 @@ function MyDrive() {
         return res.json();
       })
       .then((data) => {
-        setDrives(data);
-        setFilteredDrives(data);
-      })
-      .catch((err) => {
+
+        // ⭐ Normalize passenger status ("" → "pending")
+        const normalized = data.map((drive) => ({
+          ...drive,
+          passengers: drive.passengers?.map((p) => ({
+            ...p,
+            status: p.status?.trim() === "" ? "pending" : p.status
+          })) || []
+        }));
+
+        // ⭐ Sort correctly with Cancelled included
+        const sorted = normalized.sort((a, b) => {
+          const da = parseDateAsIST(a.dateTime);
+          const db = parseDateAsIST(b.dateTime);
+
+          const sa =
+            a.status?.toLowerCase() === "cancelled"
+              ? "Cancelled"
+              : getDriveStatus(da);
+
+          const sb =
+            b.status?.toLowerCase() === "cancelled"
+              ? "Cancelled"
+              : getDriveStatus(db);
+
+          const statusOrder = {
+            "Today / Upcoming": 1,
+            Upcoming: 2,
+            Completed: 3,
+            Cancelled: 4,  // ⭐ FIX ADDED
+          };
+
+          return statusOrder[sa] - statusOrder[sb];
+        });
+
+        setDrives(sorted);
+        setFilteredDrives(sorted);
+      }).catch((err) => {
         console.error(err);
         toast.error('Failed to load drives.');
       })
@@ -94,6 +133,7 @@ function MyDrive() {
     Completed: 'gray',
     'Today / Upcoming': 'green',
     Upcoming: 'blue',
+    Cancelled: 'red',
   };
 
   const getDriveStatus = (dateObj) => {
@@ -115,24 +155,150 @@ function MyDrive() {
 
     result = result.filter((drive) => {
       const driveDate = parseDateAsIST(drive.dateTime);
-      const driveStatus = getDriveStatus(driveDate);
+
+      // ⭐ Real drive status (includes Cancelled)
+      const realStatus =
+        drive.status?.toLowerCase() === "cancelled"
+          ? "Cancelled"
+          : getDriveStatus(driveDate);
 
       return (
-        (!from ||
-          drive.from.toLowerCase().includes(from.toLowerCase())) &&
+        (!from || drive.from.toLowerCase().includes(from.toLowerCase())) &&
         (!to || drive.to.toLowerCase().includes(to.toLowerCase())) &&
         (!date || driveDate.toISOString().slice(0, 10) === date) &&
-        (!status || driveStatus === status)
+        (!status || realStatus === status)
       );
+    });
+
+    // ⭐ Sort with Cancelled included
+    result.sort((a, b) => {
+      const da = parseDateAsIST(a.dateTime);
+      const db = parseDateAsIST(b.dateTime);
+
+      const sa =
+        a.status?.toLowerCase() === "cancelled"
+          ? "Cancelled"
+          : getDriveStatus(da);
+
+      const sb =
+        b.status?.toLowerCase() === "cancelled"
+          ? "Cancelled"
+          : getDriveStatus(db);
+
+      const statusOrder = {
+        "Today / Upcoming": 1,
+        Upcoming: 2,
+        Completed: 3,
+        Cancelled: 4,
+      };
+
+      return statusOrder[sa] - statusOrder[sb];
     });
 
     setFilteredDrives(result);
   };
 
+
+
   const clearFilters = () => {
     setFilters({ from: '', to: '', date: '', status: '' });
     setFilteredDrives(drives);
   };
+
+  const shareLocation = async (driveId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await fetch(`http://localhost:5218/api/Drive/share-location/${driveId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success("Location shared successfully!");
+    } catch (err) {
+      toast.error("Failed to share location.");
+    }
+  };
+
+  const cancelDriveApi = async (driveId) => {
+    try {
+      setCancelLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `http://localhost:5218/api/Drive/cancel-drive/${driveId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error(await response.text());
+
+      toast.success("Drive cancelled successfully!");
+      return true;
+    } catch (err) {
+      toast.error("Failed to cancel drive.");
+      return false;
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+
+  const acceptPassenger = async (passengerId) => {
+    try {
+      setAcceptLoading(passengerId);
+
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `http://localhost:5218/api/Drive/accept-passenger/${passengerId}`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed");
+
+      toast.success("Passenger accepted!");
+      return true;
+    } catch (err) {
+      toast.error("Error accepting passenger");
+      return false;
+    } finally {
+      setAcceptLoading(null);
+    }
+  };
+
+  const rejectPassenger = async (passengerId) => {
+    try {
+      setRejectLoading(passengerId);
+
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `http://localhost:5218/api/Drive/reject-passenger/${passengerId}`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed");
+
+      toast.success("Passenger rejected!");
+      return true;
+    } catch (err) {
+      toast.error("Error rejecting passenger");
+      return false;
+    } finally {
+      setRejectLoading(null);
+    }
+  };
+
+
 
   return (
     <div className="container mt-4">
@@ -182,6 +348,7 @@ function MyDrive() {
               <option value="Completed">Completed</option>
               <option value="Today / Upcoming">Today / Upcoming</option>
               <option value="Upcoming">Upcoming</option>
+              <option value="Cancelled">Cancelled</option>
             </select>
             <button className="btn btn-primary" onClick={applyFilters}>
               Filter
@@ -204,7 +371,11 @@ function MyDrive() {
         <div className="row g-4">
           {filteredDrives.map((drive) => {
             const dateObj = parseDateAsIST(drive.dateTime);
-            const status = getDriveStatus(dateObj);
+            const status =
+              drive.status?.toLowerCase() === "cancelled"
+                ? "Cancelled"
+                : getDriveStatus(dateObj);
+
             const formattedDate = dateObj.toLocaleDateString('en-GB');
             const formattedTime = dateObj.toLocaleTimeString([], {
               hour: '2-digit',
@@ -253,7 +424,10 @@ function MyDrive() {
       {/* Modal */}
       {selectedDrive && (() => {
         const dt = parseDateAsIST(selectedDrive.dateTime);
-        const status = getDriveStatus(dt);
+
+        const status = selectedDrive.status === "cancelled" ? "Cancelled" : getDriveStatus(dt);
+        console.log(status);
+
         const fullRoute = [
           selectedDrive.from,
           ...(selectedDrive.stops
@@ -358,9 +532,8 @@ function MyDrive() {
               {/* ✅ Passenger Details Section */}
               {selectedDrive.passengers?.length > 0 && (
                 <div className="mt-4">
-                  <h6 className="text-primary fw-bold">
-                    Passenger Details:
-                  </h6>
+                  <h6 className="text-primary fw-bold">Passenger Details:</h6>
+
                   <div className="table-responsive mt-2">
                     <table className="table table-bordered table-sm align-middle">
                       <thead>
@@ -371,8 +544,10 @@ function MyDrive() {
                           <th>Phone</th>
                           <th>OTP</th>
                           <th>Aadhar Copy</th>
+                          <th>Status</th> {/* ⭐ NEW COLUMN */}
                         </tr>
                       </thead>
+
                       <tbody>
                         {selectedDrive.passengers.map((p) => (
                           <tr key={p.id}>
@@ -381,24 +556,79 @@ function MyDrive() {
                             <td>{p.age}</td>
                             <td>{p.phone}</td>
                             <td>{p.otp}</td>
+
+                            {/* Aadhar Image */}
                             <td>
-                              {p.aadharCopy && p.aadharCopy.startsWith('/') ? (
+                              {p.aadharCopy && p.aadharCopy.startsWith("/") ? (
                                 <img
                                   src={`http://localhost:5218${p.aadharCopy}`}
                                   alt="Aadhar"
                                   style={{
-                                    width: '60px',
-                                    height: '60px',
-                                    objectFit: 'cover',
-                                    cursor: 'pointer',
-                                    borderRadius: '4px',
+                                    width: "60px",
+                                    height: "60px",
+                                    objectFit: "cover",
+                                    cursor: "pointer",
+                                    borderRadius: "4px",
                                   }}
-                                  onClick={() => setAadharPreview(`http://localhost:5218${p.aadharCopy}`)}
+                                  onClick={() =>
+                                    setAadharPreview(`http://localhost:5218${p.aadharCopy}`)
+                                  }
                                 />
                               ) : (
-                                'N/A'
+                                "N/A"
                               )}
+                            </td>
 
+                            {/* ⭐ STATUS LOGIC */}
+                            <td>
+                              {p.status === "pending" ? (
+                                <div className="d-flex gap-2">
+                                  <button
+                                    className="btn btn-success btn-sm"
+                                    disabled={acceptLoading === p.id}
+                                    onClick={async () => {
+                                      const ok = await acceptPassenger(p.id);
+                                      if (ok) {
+                                        setSelectedDrive((prev) => ({
+                                          ...prev,
+                                          passengers: prev.passengers.map((px) =>
+                                            px.id === p.id ? { ...px, status: "accepted" } : px
+                                          ),
+                                        }));
+                                      }
+                                    }}
+                                  >
+                                    {acceptLoading === p.id ? "..." : "Accept"}
+                                  </button>
+
+
+
+                                  <button
+                                    className="btn btn-danger btn-sm"
+                                    disabled={rejectLoading === p.id}
+                                    onClick={async () => {
+                                      const ok = await rejectPassenger(p.id);
+                                      if (ok) {
+                                        setSelectedDrive((prev) => ({
+                                          ...prev,
+                                          passengers: prev.passengers.map((px) =>
+                                            px.id === p.id ? { ...px, status: "rejected" } : px
+                                          ),
+                                        }));
+                                      }
+                                    }}
+                                  >
+                                    {rejectLoading === p.id ? "..." : "Reject"}
+                                  </button>
+
+                                </div>
+                              ) : p.status === "accepted" ? (
+                                <span className="text-success fw-bold">Accepted</span>
+                              ) : p.status === "rejected" ? (
+                                <span className="text-danger fw-bold">Rejected</span>
+                              ) : (
+                                "-"
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -408,36 +638,48 @@ function MyDrive() {
                 </div>
               )}
 
+
               {/* Cancel button */}
+              {/* ⭐ Cancel + Share Buttons */}
               {(() => {
                 const now = getNowIST();
-                const sixHoursLater = new Date(
-                  now.getTime() + 6 * 60 * 60 * 1000
-                );
+                const sixHoursLater = new Date(now.getTime() + 6 * 60 * 60 * 1000);
                 const canCancel =
-                  status === 'Upcoming' ||
-                  (status === 'Today / Upcoming' && dt > sixHoursLater);
+                  status === "Upcoming" ||
+                  (status === "Today / Upcoming" && dt > sixHoursLater);
 
-                if (status === 'Completed') return null;
+                if (status === "Completed") return null;
+                if (status === "Cancelled") return null;
 
-                return canCancel ? (
-                  <button
-                    type="button"
-                    className="btn btn-danger mt-3"
-                    onClick={() => cancelDrive(selectedDrive.driveId)}
-                  >
-                    Cancel Drive
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn btn-secondary mt-3"
-                    disabled
-                  >
-                    Cancel Not Available (Time Limit Exceeded)
-                  </button>
+                return (
+                  <>
+                    {/* SHARE LOCATION BUTTON */}
+                    {/* <button
+                      type="button"
+                      className="btn btn-success mt-3"
+                      onClick={() => shareLocation(selectedDrive.driveId)}
+                    >
+                      Share Location
+                    </button> */}
+
+                    {/* CANCEL BUTTON */}
+                    {canCancel ? (
+                      <button
+                        type="button"
+                        className="btn btn-danger mt-3 ms-2"
+                        onClick={() => setConfirmCancel(true)}
+                      >
+                        Cancel Drive
+                      </button>
+                    ) : (
+                      <button type="button" className="btn btn-secondary mt-3 ms-2" disabled>
+                        Cancel Not Available (Time Limit Exceeded)
+                      </button>
+                    )}
+                  </>
                 );
               })()}
+
             </div>
           </div>
         );
@@ -488,6 +730,82 @@ function MyDrive() {
           </button>
         </div>
       )}
+      {confirmCancel && (
+        <div
+          className="modal-backdrop"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 2000
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "8px",
+              width: "300px",
+              textAlign: "center"
+            }}
+          >
+            <h5>Cancel Drive?</h5>
+            <p>Are you sure you want to cancel this drive?</p>
+
+            <button
+              className="btn btn-danger me-2"
+              disabled={cancelLoading}
+              onClick={async () => {
+                setCancelLoading(true);
+
+                const success = await cancelDriveApi(selectedDrive.driveId);
+
+                setCancelLoading(false);
+                setConfirmCancel(false);
+
+                if (success) {
+                  // Update status locally (do NOT delete)
+                  setDrives(prev =>
+                    prev.map(d =>
+                      d.driveId === selectedDrive.driveId
+                        ? { ...d, status: "cancelled" }
+                        : d
+                    )
+                  );
+
+                  setFilteredDrives(prev =>
+                    prev.map(d =>
+                      d.driveId === selectedDrive.driveId
+                        ? { ...d, status: "cancelled" }
+                        : d
+                    )
+                  );
+
+                  setSelectedDrive(prev => ({ ...prev, status: "cancelled" }));
+                }
+              }}
+            >
+              {cancelLoading ? "Cancelling…" : "Yes"}
+            </button>
+
+
+
+            <button
+              className="btn btn-secondary"
+              onClick={() => setConfirmCancel(false)}
+            >
+              No
+            </button>
+          </div>
+        </div>
+      )}
+
 
     </div>
   );

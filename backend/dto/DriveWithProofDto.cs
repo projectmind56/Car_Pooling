@@ -9,6 +9,7 @@ public class DriveWithProofDto
     public DateTime DateTime { get; set; }
     public string VehicleNumber { get; set; } = string.Empty;
     public string CarModel { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
     public int Capacity { get; set; }
     public int CapacityLeft { get; set; }
 
