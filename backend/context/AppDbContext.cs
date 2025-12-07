@@ -14,5 +14,7 @@ namespace backend.Context
         public DbSet<DriveModel> Drives { get; set; }
         public DbSet<DriverProofModel> DriverProofs { get; set; }
         public DbSet<PassengerModel> PassengerDetails { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
+
     }
 }

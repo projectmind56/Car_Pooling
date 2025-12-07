@@ -11,5 +11,11 @@ namespace backend.Services
         Task<bool> DeletePassengerAsync(int id);
         Task<List<RideWithPassengerDto>> GetRidesForPassengerAsync(int userId);
         Task<bool> CancelPassengerRideAsync(int passengerId);
+
+        Task AddFeedbackAsync(Feedback feedback);
+        Task<IEnumerable<Feedback>> GetFeedbackByDriverIdAsync(int driverId);
+        Task<IEnumerable<Feedback>> GetFeedbackByUserIdAsync(int driveId, int userId);
+
+
     }
 }

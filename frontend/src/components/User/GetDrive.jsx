@@ -16,6 +16,9 @@ function GetDrive() {
         status: ''
     });
 
+    const [feedbacks, setFeedbacks] = useState([]);
+    const [feedbackLoading, setFeedbackLoading] = useState(false);
+
     const [isLoading, setIsLoading] = useState(false); // loader for page loads
     const [isSubmitting, setIsSubmitting] = useState(false); // loader for booking submit
 
@@ -65,6 +68,32 @@ function GetDrive() {
     useEffect(() => {
         fetchDrives();
     }, []);
+
+    // Fetch feedbacks for the driver of the selected drive
+    const fetchFeedbacks = async (driverId) => {
+        if (!driverId) return;
+        setFeedbackLoading(true);
+        try {
+            const res = await fetch(`http://localhost:5218/api/Passenger/driver/${driverId}`);
+            if (!res.ok) throw new Error('Failed to fetch feedbacks');
+            const data = await res.json();
+            setFeedbacks(data);
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to load feedbacks');
+        } finally {
+            setFeedbackLoading(false);
+        }
+    };
+
+    // Call this whenever a drive is selected to view details
+    useEffect(() => {
+        if (selectedDrive) {
+            fetchFeedbacks(selectedDrive.driverId || selectedDrive.userId); // adjust key if different
+        } else {
+            setFeedbacks([]);
+        }
+    }, [selectedDrive]);
 
 
     const applyFilters = () => {
@@ -471,6 +500,30 @@ function GetDrive() {
                                 </div>
                             </div>
                         )}
+
+                        {/* Feedback Section */}
+                        <div className="mb-3">
+                            <strong>Passenger Feedbacks:</strong>
+                            {feedbackLoading ? (
+                                <div className="mt-2">
+                                    <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                                    Loading feedbacks...
+                                </div>
+                            ) : feedbacks.length === 0 ? (
+                                <div className="mt-2">No feedbacks yet.</div>
+                            ) : (
+                                <ul className="list-group list-group-flush mt-2">
+                                    {feedbacks.map((fb) => (
+                                        <li key={fb.id} className="list-group-item">
+                                            <strong>Rating:</strong> {fb.rating} ⭐<br />
+                                            <strong>Comment:</strong> {fb.feedbackText}<br />
+                                            <small className="text-muted">{new Date(fb.createdAt).toLocaleString()}</small>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+
                     </div>
                 </div>
             )}
