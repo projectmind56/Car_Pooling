@@ -13,6 +13,7 @@ import UploadDriverProof from './components/User/UploadDriverProof';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MyRide from './components/User/MyRide';
+import ViewUsers from './components/admin/ViewUsers';
 
 function App() {
   return (
@@ -38,7 +39,11 @@ function App() {
             <Route path="get-drive" element={<GetDrive />} />
             <Route path="upload-proof" element={<UploadDriverProof />} />
             <Route path="my-ride" element={<MyRide />} />
+
+            <Route path="view-users" element={<ViewUsers />} />
+
           </Route>
+          
         </Routes>
       </BrowserRouter>
     </>

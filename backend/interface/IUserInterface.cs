@@ -1,5 +1,6 @@
 // Interfaces/IUserInterface.cs
 using backend.Dto;
+using backend.Models;
 using System.Threading.Tasks;
 
 namespace backend.Interfaces
@@ -8,5 +9,8 @@ namespace backend.Interfaces
     {
         Task<bool> RegisterAsync(RegisterDto registerDto);
         Task<LoginResponseDto?> LoginAsync(LoginDto loginDto);
+
+        Task<List<UserModel>> GetAllUsers();
+        Task<bool> UpdateUserStatusAsync(int userId);
     }
 }

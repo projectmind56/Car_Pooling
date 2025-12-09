@@ -43,23 +43,55 @@ namespace backend.Services
             return true;
         }
 
-public async Task<LoginResponseDto?> LoginAsync(LoginDto loginDto)
-{
-    var user = await _context.Users
-        .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+        public async Task<LoginResponseDto?> LoginAsync(LoginDto loginDto)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
-    if (user == null || !VerifyPassword(loginDto.Password, user.Password))
-        return null;
+            // Email not found OR password incorrect
+            if (user == null || !VerifyPassword(loginDto.Password, user.Password))
+                return null;
 
-    var token = GenerateJwtToken(user);
+            // ❗ CHECK ACCOUNT STATUS
+            if (user.Status?.ToLower() == "deactive")
+            {
+                return new LoginResponseDto
+                {
+                    Token = null,
+                    UserId = user.UserId,
+                    Message = "Your account has been deactivated by admin."
+                };
+            }
 
-    return new LoginResponseDto
-    {
-        Token = token,
-        UserId = user.UserId
-    };
-}
+            // Generate token
+            var token = GenerateJwtToken(user);
 
+            return new LoginResponseDto
+            {
+                Token = token,
+                UserId = user.UserId,
+                Message = "Login successful."
+            };
+        }
+
+        public async Task<List<UserModel>> GetAllUsers()
+        {
+            return await _context.Users.Where(r => r.Role != "admin").ToListAsync();
+        }
+
+        public async Task<bool> UpdateUserStatusAsync(int userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+                return false;
+
+            user.Status = "deactive";
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
 
         private string HashPassword(string password)
         {

@@ -21,5 +21,7 @@ namespace backend.Models
 
         [Required]
         public string Role { get; set; } = "user"; // Default role is "user"
+
+        public string Status { get; set; } = "active";
     }
 }

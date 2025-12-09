@@ -30,12 +30,40 @@ namespace backend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            var loginResponse = await _userService.LoginAsync(dto);
-            if (loginResponse == null)
+            var response = await _userService.LoginAsync(dto);
+
+            if (response == null)
                 return Unauthorized(new { message = "Invalid email or password." });
 
-            return Ok(loginResponse);
+            if (response.Token == null && response.Message != null)
+                return Unauthorized(new { message = response.Message });
+
+            return Ok(response);
         }
+
+
+        [HttpGet("getAllUsers")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userService.GetAllUsers();
+
+            if (users == null)
+                return NotFound(new { message = "No users found." });
+
+            return Ok(users);
+        }
+
+        [HttpPut("update-status/{userId}")]
+        public async Task<IActionResult> UpdateUserStatus(int userId)
+        {
+            var updated = await _userService.UpdateUserStatusAsync(userId);
+
+            if (!updated)
+                return NotFound(new { message = "User not found." });
+
+            return Ok(new { message = $"Status updated successfully" });
+        }
+
 
     }
 }
